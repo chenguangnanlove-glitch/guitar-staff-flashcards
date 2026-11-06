@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Staff visual test</title>
+  <style>
+    body { margin: 0; padding: 18px; font-family: -apple-system, "PingFang SC", sans-serif; background: #f3f5f1; color: #1c1f1c; }
+    h1 { font-size: 18px; margin: 0 0 14px; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .cell { background: #fff; border: 1px solid #e2e7df; border-radius: 14px; padding: 6px; }
+    .label { font-size: 12px; color: #596059; padding: 2px 6px 4px; }
+    .staff { min-height: 110px; }
+  </style>
+</head>
+<body>
+  <h1>Staff visual test · first position</h1>
+  <div id="grid" class="grid"></div>
+  <script src="../vendor/vexflow.js"></script>
+  <script type="module">
+    import { ensureStaffFonts, renderStaff, staffAriaDescription } from '../js/staff.js';
+    import { buildPositions } from '../js/music.js';
+    await ensureStaffFonts();
+    const grid = document.querySelector('#grid');
+    const notes = buildPositions({ strings: [1,2,3,4,5,6], frets: [0,1,2,3], naturalsOnly: true });
+    for (const note of notes) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      const staff = document.createElement('div');
+      staff.className = 'staff';
+      const label = document.createElement('div');
+      label.className = 'label';
+      label.textContent = `${note.positionLabel} · ${note.pitch.fullName} · ${note.pitch.solfege} · ${staffAriaDescription(note.pitch, { reveal: true })}`;
+      cell.append(staff, label);
+      grid.appendChild(cell);
+      renderStaff(staff, note.pitch, {
+        width: 220,
+        height: 190,
+        staveY: 66,
+        noteStartX: 118,
+        showStringBadge: true,
+        stringNumber: note.string,
+        ariaLabel: staffAriaDescription(note.pitch, { reveal: true }),
+      });
+    }
+  </script>
+</body>
+</html>

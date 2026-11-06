@@ -1,0 +1,10 @@
+node_modules/
+tests/.testdeps/
+tests/chrome-*/
+tests/tmp/
+tests/shots/
+.DS_Store
+*.log
+dist/
+*.zip
+.wrangler/

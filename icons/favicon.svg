@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="吉他五线谱闪卡">
+  <rect width="64" height="64" rx="14" fill="#3d6b5c"/>
+  <g stroke="#f7f1e0" stroke-width="1.8" stroke-linecap="round">
+    <path d="M9 23h46M9 28h46M9 33h46M9 38h46M9 43h46"/>
+  </g>
+  <ellipse cx="28" cy="38" rx="8" ry="5.5" transform="rotate(-18 28 38)" fill="#f7f1e0"/>
+  <path d="M35 16v22" stroke="#f7f1e0" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M35 16c6 1 9 4 8 9-2-4-4-5-8-6z" fill="#f7f1e0"/>
+  <circle cx="47" cy="45" r="2.6" fill="#deb871"/>
+</svg>

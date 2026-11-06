@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="吉他五线谱闪卡图标">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#42705f"/>
+      <stop offset="1" stop-color="#2b5245"/>
+    </linearGradient>
+    <clipPath id="round">
+      <rect width="512" height="512" rx="112"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#round)">
+    <rect width="512" height="512" fill="url(#bg)"/>
+    <g stroke="#f7f1e0" stroke-width="4.5" stroke-linecap="round" opacity="0.98">
+      <path d="M92 180h328M92 212h328M92 244h328M92 276h328M92 308h328"/>
+    </g>
+    <g transform="rotate(-18 232 300)">
+      <ellipse cx="232" cy="300" rx="54" ry="36" fill="#f7f1e0"/>
+    </g>
+    <rect x="274" y="128" width="10" height="172" rx="5" fill="#f7f1e0"/>
+    <path d="M284 130c40 5 68 28 62 62-5-22-22-36-46-40l-16-3v-19z" fill="#f7f1e0"/>
+    <circle cx="366" cy="352" r="13" fill="#deb871"/>
+  </g>
+</svg>

@@ -1,0 +1,30 @@
+{
+  "name": "guitar-staff-flashcards",
+  "version": "1.2.0",
+  "private": true,
+  "type": "module",
+  "description": "吉他五线谱闪卡：高音谱号、音名、固定唱名与指板位置的中文 PWA",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "serve": "node scripts/serve.mjs",
+    "build:file": "node scripts/build-file-bundle.mjs",
+    "build:static": "node scripts/build-static.mjs",
+    "test": "node --test tests/music.test.js tests/levels.test.js tests/quiz.test.js tests/storage.test.js tests/pwa.test.js tests/bundle.test.js tests/deploy.test.js",
+    "test:ui": "node --test tests/staff-render.test.js tests/app-smoke.test.js tests/deploy-ui.test.js",
+    "selfcheck": "node scripts/self-check.mjs",
+    "check:browser": "node tests/dev/browser-check.mjs",
+    "check:audio": "node tests/dev/audio-check.mjs",
+    "check:file": "node tests/dev/file-open-check.mjs",
+    "check:mobile": "node tests/dev/mobile-check.mjs",
+    "check:learning": "node tests/dev/learning-check.mjs",
+    "check:progress": "node tests/dev/progress-check.mjs",
+    "check:deploy": "node tests/dev/deploy-check.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0",
+    "playwright-core": "^1.64.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
