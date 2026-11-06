@@ -172,3 +172,85 @@ test('Service Worker 的缓存清单覆盖全部应用脚本与图标', () => {
     assert.ok(sw.includes(`./icons/${icon}`), `预缓存包含 icons/${icon}`);
   }
 });
+
+test('导航不使用被重定向过的缓存响应（Cloudflare 把 /index.html 308 到 /）', async () => {
+  const source = readFileSync(resolve(ROOT, 'sw.js'), 'utf8');
+  const listeners = {};
+  const stores = new Map();
+  const cacheName = 'test-cache';
+
+  function normalize(request) {
+    const raw = typeof request === 'string' ? request : request.url;
+    const url = new URL(raw, BASE);
+    url.hash = '';
+    return url.href;
+  }
+
+  const store = new Map();
+  stores.set(cacheName, store);
+
+  const cacheApi = {
+    async open(name) {
+      if (!stores.has(name)) stores.set(name, new Map());
+      const inner = stores.get(name);
+      return {
+        async addAll(urls) {
+          for (const url of urls) inner.set(normalize(url), new Response(`cached:${url}`, { status: 200 }));
+        },
+        async put(request, response) { inner.set(normalize(request), response); },
+        async match(request) { return inner.get(normalize(request)); },
+      };
+    },
+    async match(request) {
+      for (const inner of stores.values()) {
+        const found = inner.get(normalize(request));
+        if (found) return found;
+      }
+      return undefined;
+    },
+    async keys() { return [...stores.keys()]; },
+    async delete(name) { return stores.delete(name); },
+  };
+
+  const context = {
+    self: {
+      location: { origin: 'http://localhost' },
+      addEventListener(type, handler) { listeners[type] = handler; },
+      skipWaiting() {},
+      clients: { claim() { return Promise.resolve(); } },
+    },
+    caches: cacheApi,
+    fetch: async () => { throw new Error('offline'); },
+    Response,
+    Request,
+    URL,
+    console,
+  };
+  vm.createContext(context);
+  vm.runInContext(source, context);
+
+  // 模拟 Cloudflare：/index.html 是跟随 308 后得到的响应，带 redirected 标记。
+  const redirected = new Response('shell-body', { status: 200 });
+  Object.defineProperty(redirected, 'redirected', { value: true });
+  store.set('http://localhost/index.html', redirected);
+  store.set('http://localhost/', new Response('shell-body', { status: 200 }));
+
+  async function navigate(url) {
+    let promise;
+    listeners.fetch({
+      request: { method: 'GET', mode: 'navigate', url },
+      respondWith(value) { promise = value; },
+    });
+    return promise;
+  }
+
+  const first = await navigate(`${BASE}`);
+  assert.equal(first.redirected, false, '优先使用未被重定向的缓存条目');
+  assert.equal(await first.text(), 'shell-body');
+
+  // 只剩被重定向的条目时，也必须返回干净的响应，否则浏览器会 ERR_FAILED。
+  store.delete('http://localhost/');
+  const second = await navigate(`${BASE}`);
+  assert.equal(second.redirected, false, '重定向响应需要重新包一层');
+  assert.equal(await second.text(), 'shell-body');
+});

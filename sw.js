@@ -65,8 +65,8 @@ async function cacheFirst(request) {
 }
 
 async function navigationResponse(request) {
-  const cachedIndex = await caches.match('./index.html');
-  if (cachedIndex) return cachedIndex;
+  const shell = await cachedShell();
+  if (shell) return shell;
   try {
     return await fetch(request);
   } catch {
@@ -75,6 +75,36 @@ async function navigationResponse(request) {
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },
     });
   }
+}
+
+/**
+ * 把「重定向过」的缓存响应重新包一层。
+ *
+ * 为什么要这么做：Cloudflare Pages 会把 /index.html 用 308 重定向到 /，
+ * 预缓存时 fetch 默认跟随重定向，缓存下来的响应带 redirected 标记。
+ * 浏览器不允许用这种响应满足一次导航请求，会直接报 net::ERR_FAILED，
+ * 表现为「Service Worker 一旦接管，刷新就打不开了」。
+ * 重新构造 Response 可以清掉这个标记。
+ */
+async function unwrapRedirect(response) {
+  if (!response || !response.redirected) return response;
+  const body = await response.blob();
+  return new Response(body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+}
+
+/** 取应用外壳：优先用没被重定向的版本，实在没有就包一层干净的。 */
+async function cachedShell() {
+  const candidates = (await Promise.all([
+    caches.match('./'),
+    caches.match('./index.html'),
+  ])).filter(Boolean);
+  if (candidates.length === 0) return null;
+  return candidates.find((response) => !response.redirected)
+    || unwrapRedirect(candidates[0]);
 }
 
 self.addEventListener('fetch', (event) => {

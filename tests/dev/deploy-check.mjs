@@ -52,6 +52,16 @@ const MIME = {
 const requests = [];
 const server = createServer((request, response) => {
   const pathname = decodeURIComponent(new URL(request.url, ORIGIN).pathname);
+
+  // 复刻 Cloudflare Pages 的行为：/index.html 用 308 重定向到 /。
+  // 这一步是必需的——本地服务器若不重定向，就会掩盖
+  // 「Service Worker 缓存了重定向响应、导致导航直接 ERR_FAILED」这个线上故障。
+  if (pathname === '/index.html') {
+    requests.push({ path: pathname, status: 308 });
+    response.writeHead(308, { Location: '/' }).end();
+    return;
+  }
+
   let filePath = normalize(join(DIST, pathname));
   if (!filePath.startsWith(DIST + sep) && filePath !== DIST) {
     response.writeHead(403).end('forbidden');
@@ -180,6 +190,21 @@ try {
     assert(controlled, 'Service Worker 未接管页面');
   });
 
+  // 线上真实故障回归：Cloudflare 把 /index.html 308 到 /，
+  // 若 SW 直接返回缓存里的重定向响应，导航会 net::ERR_FAILED。
+  await check('SW 接管后刷新仍能打开（重定向响应不可用于导航）', async () => {
+    await page.reload({ waitUntil: 'domcontentloaded', timeout: 20000 });
+    await waitForApp(page);
+    const shell = await page.evaluate(async () => {
+      const names = await caches.keys();
+      const cache = await caches.open(names[0]);
+      const hit = await cache.match('./index.html');
+      return { redirected: hit?.redirected ?? null, status: hit?.status ?? null };
+    });
+    // 前提确认：缓存里确实存在一份被重定向过的响应，否则这条测试没有意义。
+    assert(shell.redirected === true, `缓存应含重定向响应，实际 redirected=${shell.redirected}`);
+  });
+
   await page.goto(`${BASE}#/settings`, { waitUntil: 'domcontentloaded' });
   await waitForApp(page);
 
@@ -294,6 +319,14 @@ try {
     for (const failure of failures) console.error(`- ${failure.name}: ${failure.error.message}`);
     process.exitCode = 1;
   }
+} catch (error) {
+  // 导航类故障（例如 SW 返回重定向响应导致 ERR_FAILED）会中断整个流程，
+  // 这里兜底成一条失败记录，保证仍然打印结论而不是只抛栈。
+  failures.push({ name: '流程中断', error });
+  console.error(`\n流程中断：${error.message.split('\n')[0]}`);
+  console.log(`\n结果：${passed} 项通过，${failures.length} 项失败`);
+  for (const failure of failures) console.error(`- ${failure.name}: ${failure.error.message.split('\n')[0]}`);
+  process.exitCode = 1;
 } finally {
   await browser.close();
   await new Promise((resolveClose) => server.close(resolveClose));
