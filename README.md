@@ -6,6 +6,7 @@
 - 音符位置全部由「弦号 + 品位」推算，不在数据里手写音名或谱面坐标。
 - 使用 VexFlow 绘制高音谱表，低音弦的下加线由 VexFlow 自动绘制；指板是自写的 SVG。
 - 无后端、无音频文件；进度存在 `localStorage`，可添加到手机桌面并离线使用。
+- 线上地址：<https://guitar-staff-flashcards.pages.dev>（Cloudflare Pages，连接 GitHub 自动发布）。
 
 ---
 
@@ -296,8 +297,9 @@ git ls-files | wc -l      # 约 60 个源码文件，不含依赖与产物
 
 ### 第三步：拿到网址
 
-- 默认地址形如 `https://guitar-flashcards-1a2.pages.dev`。
-- 想改名：**Settings → General → Project name**，改成 `https://<你想要的>.pages.dev`（名字未被占用即可）。
+- 地址由项目名决定：项目名叫 `guitar-staff-flashcards`，网址就是 `https://guitar-staff-flashcards.pages.dev`。
+- Pages 的 `*.pages.dev` 子域和项目名绑定，控制台没有「重命名项目」入口。想换网址只能**新建一个用新名字的项目**，确认新址可用后再删掉旧项目（否则同一个仓库会被构建两次）。
+- 想用自己的域名：**Custom domains → Set up a domain**，需要另行购买域名。
 - 之后每次 `git push` 到 `main`，Cloudflare 会自动重新构建并发布，通常 30 秒到 1 分钟生效。
 
 ### 不建仓库的备选：直接上传
