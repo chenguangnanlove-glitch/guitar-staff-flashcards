@@ -108,10 +108,17 @@ async function stampServiceWorkerVersion() {
     digest.update(file);
     digest.update(await readFile(join(DIST, file)));
   }
-  const buildId = digest.digest('hex').slice(0, 8);
 
   const swPath = join(DIST, 'sw.js');
   const source = await readFile(swPath, 'utf8');
+
+  // sw.js 自身也要参与哈希，否则「只改 Service Worker」的发版不会换版本号，
+  // 老用户的等待中新 worker 会沿用同名缓存，等于没有更新。
+  // 先把版本行归一化，避免哈希结果自我依赖。
+  digest.update('sw.js');
+  digest.update(source.replace(/const CACHE_NAME = '[^']+';/, "const CACHE_NAME = '';"));
+
+  const buildId = digest.digest('hex').slice(0, 8);
   const versioned = source.replace(
     /const CACHE_NAME = '[^']+';/,
     `const CACHE_NAME = 'guitar-staff-flashcards-${buildId}';`,
