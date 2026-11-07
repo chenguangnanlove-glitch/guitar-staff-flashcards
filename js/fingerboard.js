@@ -12,8 +12,12 @@ const DEFAULT_LAYOUT = Object.freeze({
   stringGap: 27,
   leftPad: 34,
   rightPad: 16,
-  topPad: 30,
-  bottomPad: 18,
+  // labelBand：顶部写品位数字的条带高度。
+  // padY：指板矩形在「最上面一根弦之上 / 最下面一根弦之下」预留的留白，两边相等，
+  //       六根弦因此在矩形里垂直居中，不会像早先那样贴着上沿、底部空一大块。
+  labelBand: 16,
+  padY: 17,
+  bottomPad: 2,
   openWidth: 44,
   dotRadius: 4.5,
   ringRadius: 11,
@@ -42,8 +46,14 @@ export function computeFingerboardGeometry(frets, layout = DEFAULT_LAYOUT) {
   const stopped = sorted.filter((fret) => fret > 0);
   const nutX = layout.leftPad + (hasOpen ? layout.openWidth : 0);
   const width = nutX + stopped.length * layout.cellWidth + layout.rightPad;
-  const height = layout.topPad + 6 * layout.stringGap + layout.bottomPad;
-  const stringY = (stringNumber) => layout.topPad + (stringNumber - 1) * layout.stringGap;
+
+  // 弦的纵向位置：顶部先留出品位数字条带，再留一段等量的上下对称留白。
+  const firstStringY = layout.labelBand + layout.padY;
+  const stringY = (stringNumber) => firstStringY + (stringNumber - 1) * layout.stringGap;
+  const boardTop = layout.labelBand;
+  const boardBottom = stringY(6) + layout.padY;
+  const height = boardBottom + layout.bottomPad;
+
   const cellCenterX = (fret) => {
     if (fret === 0) return layout.leftPad + layout.openWidth / 2;
     const index = stopped.indexOf(fret);
@@ -57,6 +67,9 @@ export function computeFingerboardGeometry(frets, layout = DEFAULT_LAYOUT) {
     width,
     height,
     stringY,
+    firstStringY,
+    boardTop,
+    boardBottom,
     cellCenterX,
     boardLeft: layout.leftPad,
     boardRight: nutX + stopped.length * layout.cellWidth,
@@ -94,7 +107,9 @@ export function renderFingerboard(container, options = {}) {
 
   const layout = DEFAULT_LAYOUT;
   const geometry = computeFingerboardGeometry(frets, layout);
-  const { width, height, nutX, boardLeft, boardRight, sorted, stopped, hasOpen, stringY, cellCenterX } = geometry;
+  const { width, height, nutX, boardLeft, boardRight, sorted, stopped, hasOpen, stringY, cellCenterX, boardTop, boardBottom } = geometry;
+  const fretLineTop = boardTop + 2;
+  const fretLineBottom = boardBottom - 2;
 
   container.innerHTML = '';
   const scroll = document.createElement('div');
@@ -126,9 +141,9 @@ export function renderFingerboard(container, options = {}) {
   // 指板底色
   svg.appendChild(svgEl('rect', {
     x: boardLeft - 3,
-    y: layout.topPad - 14,
+    y: boardTop,
     width: boardRight - boardLeft + 6,
-    height: 6 * layout.stringGap + 28,
+    height: boardBottom - boardTop,
     rx: 12,
     class: 'fb-board',
     fill: `url(#${gradient.getAttribute('id')})`,
@@ -138,9 +153,9 @@ export function renderFingerboard(container, options = {}) {
   if (hasOpen) {
     svg.appendChild(svgEl('rect', {
       x: boardLeft,
-      y: layout.topPad - 12,
+      y: boardTop + 2,
       width: layout.openWidth,
-      height: 6 * layout.stringGap + 24,
+      height: boardBottom - boardTop - 4,
       rx: 8,
       class: 'fb-open-zone',
     }));
@@ -152,9 +167,10 @@ export function renderFingerboard(container, options = {}) {
       const x = cellCenterX(fret);
       svg.appendChild(textEl(fret === 0 ? '0' : String(fret), {
         x,
-        y: layout.topPad - 17,
+        y: boardTop / 2 + 1,
         class: 'fb-fret-label',
         'text-anchor': 'middle',
+        'dominant-baseline': 'central',
       }));
     }
   }
@@ -162,8 +178,8 @@ export function renderFingerboard(container, options = {}) {
   // 竖线（品丝/弦枕）
   if (hasOpen) {
     svg.appendChild(svgEl('line', {
-      x1: nutX, y1: layout.topPad - 13,
-      x2: nutX, y2: layout.topPad + 5 * layout.stringGap + 13,
+      x1: nutX, y1: fretLineTop,
+      x2: nutX, y2: fretLineBottom,
       class: 'fb-nut',
     }));
   }
@@ -177,15 +193,15 @@ export function renderFingerboard(container, options = {}) {
   }
   for (const x of boundaries) {
     svg.appendChild(svgEl('line', {
-      x1: x, y1: layout.topPad - 13,
-      x2: x, y2: layout.topPad + 5 * layout.stringGap + 13,
+      x1: x, y1: fretLineTop,
+      x2: x, y2: fretLineBottom,
       class: 'fb-fret',
     }));
   }
   if (!hasOpen) {
     svg.appendChild(svgEl('line', {
-      x1: boardLeft, y1: layout.topPad - 13,
-      x2: boardLeft, y2: layout.topPad + 5 * layout.stringGap + 13,
+      x1: boardLeft, y1: fretLineTop,
+      x2: boardLeft, y2: fretLineBottom,
       class: 'fb-fret fb-fret--edge',
     }));
   }
@@ -202,9 +218,10 @@ export function renderFingerboard(container, options = {}) {
     }));
     svg.appendChild(textEl(CIRCLED_NUMBERS[stringNumber], {
       x: 12,
-      y: y + 4,
+      y,
       class: `fb-string-label${hintString === stringNumber ? ' is-hinted' : ''}`,
       'text-anchor': 'middle',
+      'dominant-baseline': 'central',
     }));
   }
 

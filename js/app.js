@@ -771,6 +771,11 @@ function renderQuiz() {
     height: 200,
     staveY: 40,
     noteStartX: 162,
+    // 高音谱表的真实笔画（含弦号徽标）实测占 y≈41–163.5：最高音 E6 的
+    // 上加线顶到 41，最低音 E3 的三条下加线底到 163.5。其余高度是 VexFlow
+    // clef 字形的包围盒虚高。上下各留 8px 后取 33–172，既能去掉原先
+    // 上下各约 50px 的空白，又不会切掉加线或升降号。
+    viewBox: { x: 0, y: 33, width: 320, height: 139 },
     showStringBadge: showString,
     stringNumber: card.note.string,
     state: feedback ? (feedback.correct ? 'correct' : 'wrong') : 'neutral',

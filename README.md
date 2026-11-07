@@ -63,6 +63,7 @@ guitar-staff-flashcards/
     ├── pwa.test.js             # manifest、图标、Service Worker 缓存
     ├── bundle.test.js          # file:// 兼容包与源码同步、无模块语法
     ├── deploy.test.js          # dist 产物、相对路径、预缓存清单、_headers 规则
+    ├── fingerboard.test.js     # 指板几何：弦居中、上下对称、触控不重叠
     ├── staff-render.test.js    # 可选：jsdom + VexFlow 真实绘制
     ├── app-smoke.test.js       # 可选：jsdom 内走完整答题与设置流程
     ├── deploy-ui.test.js       # 可选：生产域名下的文案与离线状态
@@ -163,6 +164,7 @@ npm run check:file     # 用 file:// 打开，验证双击路径可用
 npm run check:mobile   # 模拟 iPhone 走局域网地址，验证手机路径
 npm run build:static   # 生成静态发布目录 dist/
 npm run check:deploy   # 发布产物验收：答题、刷新保留、导出/导入、离线
+npm run check:layout   # 三模式布局：位置一致、谱面不裁切、指板对称、小屏无溢出
 ```
 
 `jsdom` 与 `playwright-core` 只用于可选测试，不会进入应用运行时代码，也不会被 Service Worker 缓存。
@@ -634,8 +636,10 @@ npm run selfcheck
 ## 实现说明与取舍
 
 - **VexFlow 5.0.0 已内置**：`vendor/vexflow.js` 约 1.1 MB，字体以 data URI 内嵌，不依赖 CDN。许可证见 `vendor/VEXFLOW-LICENSE.txt`。
-- **谱表**：只画高音谱号单音；VexFlow 自动处理线、间、加线和升降号。弦号徽标是在同一个 SVG 上追加的圆圈数字，避免依赖特殊字体。
+- **谱表**：只画高音谱号单音；VexFlow 自动处理线、间、加线和升降号。弦号徽标是在同一个 SVG 上追加的圆圈数字，避免依赖特殊字体，位置在符头右侧 34px，不会压住音符。
+- **谱面卡片高度**：答题页用 `viewBox: { y: 33, height: 139 }` 把画布收紧到真实笔画范围（最高音 E6 的上加线顶到 y≈41，最低音 E3 的三条下加线底到 y≈163.5）。VexFlow 的 clef 字形包围盒比实际笔画大得多，直接按 `height` 排版会上下各空出约 50px；收紧后卡片从约 230px 降到约 158px（390 宽），三种作答模式共用同一套参数，切换时不跳动。
 - **指板**：完全自写 SVG，6 弦横向排列，1 弦在上、6 弦在下；4 品窗口固定宽度，12 品窗口横向滚动；每个位置都有键盘可聚焦的点击区域。答错时，如果正确位置在屏幕外，指板会自动滑到它。
+  几何由 `computeFingerboardGeometry` 统一计算：指板矩形在「①弦之上」与「⑥弦之下」留出相等的 `padY`，六根弦因此在矩形内垂直居中（早先是上方 14px、下方 41px 的偏置）；弦号用 `dominant-baseline: central` 与弦线精确对齐；触控矩形高等于弦间距（27 单位），上下相邻正好相接、不重叠。
 - **主题**：Material 浅色、主色可配置；用 JS 混合颜色而不是 `color-mix()`，兼容更多手机浏览器。
 - **响应式**：手机竖屏优先；≥1024px 时首页 hero 变双栏、关卡列表两列，避免桌面上大片空白。
 - **正确率与解锁**：按第一次作答计算；解锁后保持。手动解锁是练习模式，不会伪造完成度。

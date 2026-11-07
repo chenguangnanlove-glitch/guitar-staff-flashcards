@@ -9,7 +9,7 @@
     "serve": "node scripts/serve.mjs",
     "build:file": "node scripts/build-file-bundle.mjs",
     "build:static": "node scripts/build-static.mjs",
-    "test": "node --test tests/music.test.js tests/levels.test.js tests/quiz.test.js tests/storage.test.js tests/pwa.test.js tests/bundle.test.js tests/deploy.test.js",
+    "test": "node --test tests/music.test.js tests/levels.test.js tests/quiz.test.js tests/storage.test.js tests/fingerboard.test.js tests/pwa.test.js tests/bundle.test.js tests/deploy.test.js",
     "test:ui": "node --test tests/staff-render.test.js tests/app-smoke.test.js tests/deploy-ui.test.js",
     "selfcheck": "node scripts/self-check.mjs",
     "check:browser": "node tests/dev/browser-check.mjs",
@@ -18,7 +18,8 @@
     "check:mobile": "node tests/dev/mobile-check.mjs",
     "check:learning": "node tests/dev/learning-check.mjs",
     "check:progress": "node tests/dev/progress-check.mjs",
-    "check:deploy": "node tests/dev/deploy-check.mjs"
+    "check:deploy": "node tests/dev/deploy-check.mjs",
+    "check:layout": "node tests/dev/layout-check.mjs"
   },
   "devDependencies": {
     "jsdom": "^26.1.0",

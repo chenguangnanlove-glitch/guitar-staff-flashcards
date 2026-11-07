@@ -1538,6 +1538,9 @@ function createBadge(svg, x, y, stringNumber, tone) {
  * @param {object} pitch spellPitch() 的返回值
  * @param {object} options
  *   width/height       内部 SVG 尺寸
+ *   viewBox            可选，{ x, y, width, height }：
+ *                      只显示这块区域。VexFlow 的 clef 字形包围盒远大于实际笔画，
+ *                      靠 height 猜会留下大块空白；传入实测的内容区间能贴紧裁切。
  *   staveY             谱表顶线 y
  *   noteStartX         音符起始 x
  *   showStringBadge    是否画带圈弦号
@@ -1553,6 +1556,7 @@ function renderStaff(container, pitch, options = {}) {
     height = 232,
     staveY = 84,
     noteStartX = Math.round(width * 0.5),
+    viewBox = null,
     showStringBadge = false,
     stringNumber = null,
     state = 'neutral',
@@ -1570,7 +1574,16 @@ function renderStaff(container, pitch, options = {}) {
   // VexFlow 的 resize() 会写内联 width/height；改回自适应，让谱表随卡片宽度缩放。
   svg.style.width = '100%';
   svg.style.height = 'auto';
-  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  // VexFlow 的 resize() 会把 width/height 写成内联属性，SVG 会优先用它而不是 viewBox，
+  // 导致「viewBox 裁紧了但卡片还是原来那么高」。去掉 height、改用 aspect-ratio，
+  // 高度才能真正跟随 viewBox。
+  if (viewBox) {
+    svg.removeAttribute('height');
+    svg.style.aspectRatio = `${viewBox.width} / ${viewBox.height}`;
+  }
+  svg.setAttribute('viewBox', viewBox
+    ? `${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`
+    : `0 0 ${width} ${height}`);
   svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
   svg.setAttribute('role', 'img');
   svg.setAttribute('aria-label', ariaLabel);
@@ -1605,7 +1618,9 @@ function renderStaff(container, pitch, options = {}) {
   if (showStringBadge && stringNumber) {
     const noteX = note.getAbsoluteX();
     const noteY = note.getYs()[0];
-    createBadge(svg, noteX + 23, noteY, stringNumber, state === 'neutral' ? tone : state);
+    // 徽标要离开音符头足够远：贴太近会盖住符头，看不清音高。
+    // 音符起点加上偏移量后仍有重叠风险，因此统一放到右侧 34px 处。
+    createBadge(svg, noteX + 34, noteY, stringNumber, state === 'neutral' ? tone : state);
   }
 
   return { svg, note, stave };
@@ -1636,8 +1651,12 @@ const DEFAULT_LAYOUT = Object.freeze({
   stringGap: 27,
   leftPad: 34,
   rightPad: 16,
-  topPad: 30,
-  bottomPad: 18,
+  // labelBand：顶部写品位数字的条带高度。
+  // padY：指板矩形在「最上面一根弦之上 / 最下面一根弦之下」预留的留白，两边相等，
+  //       六根弦因此在矩形里垂直居中，不会像早先那样贴着上沿、底部空一大块。
+  labelBand: 16,
+  padY: 17,
+  bottomPad: 2,
   openWidth: 44,
   dotRadius: 4.5,
   ringRadius: 11,
@@ -1666,8 +1685,14 @@ function computeFingerboardGeometry(frets, layout = DEFAULT_LAYOUT) {
   const stopped = sorted.filter((fret) => fret > 0);
   const nutX = layout.leftPad + (hasOpen ? layout.openWidth : 0);
   const width = nutX + stopped.length * layout.cellWidth + layout.rightPad;
-  const height = layout.topPad + 6 * layout.stringGap + layout.bottomPad;
-  const stringY = (stringNumber) => layout.topPad + (stringNumber - 1) * layout.stringGap;
+
+  // 弦的纵向位置：顶部先留出品位数字条带，再留一段等量的上下对称留白。
+  const firstStringY = layout.labelBand + layout.padY;
+  const stringY = (stringNumber) => firstStringY + (stringNumber - 1) * layout.stringGap;
+  const boardTop = layout.labelBand;
+  const boardBottom = stringY(6) + layout.padY;
+  const height = boardBottom + layout.bottomPad;
+
   const cellCenterX = (fret) => {
     if (fret === 0) return layout.leftPad + layout.openWidth / 2;
     const index = stopped.indexOf(fret);
@@ -1681,6 +1706,9 @@ function computeFingerboardGeometry(frets, layout = DEFAULT_LAYOUT) {
     width,
     height,
     stringY,
+    firstStringY,
+    boardTop,
+    boardBottom,
     cellCenterX,
     boardLeft: layout.leftPad,
     boardRight: nutX + stopped.length * layout.cellWidth,
@@ -1718,7 +1746,9 @@ function renderFingerboard(container, options = {}) {
 
   const layout = DEFAULT_LAYOUT;
   const geometry = computeFingerboardGeometry(frets, layout);
-  const { width, height, nutX, boardLeft, boardRight, sorted, stopped, hasOpen, stringY, cellCenterX } = geometry;
+  const { width, height, nutX, boardLeft, boardRight, sorted, stopped, hasOpen, stringY, cellCenterX, boardTop, boardBottom } = geometry;
+  const fretLineTop = boardTop + 2;
+  const fretLineBottom = boardBottom - 2;
 
   container.innerHTML = '';
   const scroll = document.createElement('div');
@@ -1750,9 +1780,9 @@ function renderFingerboard(container, options = {}) {
   // 指板底色
   svg.appendChild(svgEl('rect', {
     x: boardLeft - 3,
-    y: layout.topPad - 14,
+    y: boardTop,
     width: boardRight - boardLeft + 6,
-    height: 6 * layout.stringGap + 28,
+    height: boardBottom - boardTop,
     rx: 12,
     class: 'fb-board',
     fill: `url(#${gradient.getAttribute('id')})`,
@@ -1762,9 +1792,9 @@ function renderFingerboard(container, options = {}) {
   if (hasOpen) {
     svg.appendChild(svgEl('rect', {
       x: boardLeft,
-      y: layout.topPad - 12,
+      y: boardTop + 2,
       width: layout.openWidth,
-      height: 6 * layout.stringGap + 24,
+      height: boardBottom - boardTop - 4,
       rx: 8,
       class: 'fb-open-zone',
     }));
@@ -1776,9 +1806,10 @@ function renderFingerboard(container, options = {}) {
       const x = cellCenterX(fret);
       svg.appendChild(textEl(fret === 0 ? '0' : String(fret), {
         x,
-        y: layout.topPad - 17,
+        y: boardTop / 2 + 1,
         class: 'fb-fret-label',
         'text-anchor': 'middle',
+        'dominant-baseline': 'central',
       }));
     }
   }
@@ -1786,8 +1817,8 @@ function renderFingerboard(container, options = {}) {
   // 竖线（品丝/弦枕）
   if (hasOpen) {
     svg.appendChild(svgEl('line', {
-      x1: nutX, y1: layout.topPad - 13,
-      x2: nutX, y2: layout.topPad + 5 * layout.stringGap + 13,
+      x1: nutX, y1: fretLineTop,
+      x2: nutX, y2: fretLineBottom,
       class: 'fb-nut',
     }));
   }
@@ -1801,15 +1832,15 @@ function renderFingerboard(container, options = {}) {
   }
   for (const x of boundaries) {
     svg.appendChild(svgEl('line', {
-      x1: x, y1: layout.topPad - 13,
-      x2: x, y2: layout.topPad + 5 * layout.stringGap + 13,
+      x1: x, y1: fretLineTop,
+      x2: x, y2: fretLineBottom,
       class: 'fb-fret',
     }));
   }
   if (!hasOpen) {
     svg.appendChild(svgEl('line', {
-      x1: boardLeft, y1: layout.topPad - 13,
-      x2: boardLeft, y2: layout.topPad + 5 * layout.stringGap + 13,
+      x1: boardLeft, y1: fretLineTop,
+      x2: boardLeft, y2: fretLineBottom,
       class: 'fb-fret fb-fret--edge',
     }));
   }
@@ -1826,9 +1857,10 @@ function renderFingerboard(container, options = {}) {
     }));
     svg.appendChild(textEl(CIRCLED_NUMBERS[stringNumber], {
       x: 12,
-      y: y + 4,
+      y,
       class: `fb-string-label${hintString === stringNumber ? ' is-hinted' : ''}`,
       'text-anchor': 'middle',
+      'dominant-baseline': 'central',
     }));
   }
 
@@ -2995,6 +3027,11 @@ function renderQuiz() {
     height: 200,
     staveY: 40,
     noteStartX: 162,
+    // 高音谱表的真实笔画（含弦号徽标）实测占 y≈41–163.5：最高音 E6 的
+    // 上加线顶到 41，最低音 E3 的三条下加线底到 163.5。其余高度是 VexFlow
+    // clef 字形的包围盒虚高。上下各留 8px 后取 33–172，既能去掉原先
+    // 上下各约 50px 的空白，又不会切掉加线或升降号。
+    viewBox: { x: 0, y: 33, width: 320, height: 139 },
     showStringBadge: showString,
     stringNumber: card.note.string,
     state: feedback ? (feedback.correct ? 'correct' : 'wrong') : 'neutral',

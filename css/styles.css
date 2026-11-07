@@ -894,7 +894,8 @@ ul, ol {
 }
 
 .staff-card__staff {
-  min-height: 132px;
+  /* 谱表按 viewBox 贴紧内容自适应高度，不再需要固定占位。
+     脚本未执行时卡片只保留内边距，错误提示由 .staff-fallback 撑开。 */
 }
 
 .staff-card__staff .staff-svg {
@@ -1113,9 +1114,9 @@ ul, ol {
 }
 
 .fb-fret-label {
-  font-size: 10px;
-  font-weight: 650;
-  fill: var(--text-faint);
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--text-muted);
 }
 
 .fb-nut {
@@ -1146,9 +1147,9 @@ ul, ol {
 }
 
 .fb-string-label {
-  font-size: 11.5px;
-  font-weight: 650;
-  fill: var(--text-faint);
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--text-muted);
 }
 
 .fb-string-label.is-hinted {

@@ -71,6 +71,9 @@ function createBadge(svg, x, y, stringNumber, tone) {
  * @param {object} pitch spellPitch() 的返回值
  * @param {object} options
  *   width/height       内部 SVG 尺寸
+ *   viewBox            可选，{ x, y, width, height }：
+ *                      只显示这块区域。VexFlow 的 clef 字形包围盒远大于实际笔画，
+ *                      靠 height 猜会留下大块空白；传入实测的内容区间能贴紧裁切。
  *   staveY             谱表顶线 y
  *   noteStartX         音符起始 x
  *   showStringBadge    是否画带圈弦号
@@ -86,6 +89,7 @@ export function renderStaff(container, pitch, options = {}) {
     height = 232,
     staveY = 84,
     noteStartX = Math.round(width * 0.5),
+    viewBox = null,
     showStringBadge = false,
     stringNumber = null,
     state = 'neutral',
@@ -103,7 +107,16 @@ export function renderStaff(container, pitch, options = {}) {
   // VexFlow 的 resize() 会写内联 width/height；改回自适应，让谱表随卡片宽度缩放。
   svg.style.width = '100%';
   svg.style.height = 'auto';
-  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  // VexFlow 的 resize() 会把 width/height 写成内联属性，SVG 会优先用它而不是 viewBox，
+  // 导致「viewBox 裁紧了但卡片还是原来那么高」。去掉 height、改用 aspect-ratio，
+  // 高度才能真正跟随 viewBox。
+  if (viewBox) {
+    svg.removeAttribute('height');
+    svg.style.aspectRatio = `${viewBox.width} / ${viewBox.height}`;
+  }
+  svg.setAttribute('viewBox', viewBox
+    ? `${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`
+    : `0 0 ${width} ${height}`);
   svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
   svg.setAttribute('role', 'img');
   svg.setAttribute('aria-label', ariaLabel);
@@ -138,7 +151,9 @@ export function renderStaff(container, pitch, options = {}) {
   if (showStringBadge && stringNumber) {
     const noteX = note.getAbsoluteX();
     const noteY = note.getYs()[0];
-    createBadge(svg, noteX + 23, noteY, stringNumber, state === 'neutral' ? tone : state);
+    // 徽标要离开音符头足够远：贴太近会盖住符头，看不清音高。
+    // 音符起点加上偏移量后仍有重叠风险，因此统一放到右侧 34px 处。
+    createBadge(svg, noteX + 34, noteY, stringNumber, state === 'neutral' ? tone : state);
   }
 
   return { svg, note, stave };
