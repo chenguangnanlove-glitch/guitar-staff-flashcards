@@ -62,7 +62,7 @@ import {
 /* ---------- 图标 ---------- */
 
 const ICONS = {
-  logo: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5.5v13M9 4.5v15M13 5.5v13M17 4.5v15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><ellipse cx="15.6" cy="15.2" rx="3.1" ry="2.3" fill="currentColor" transform="rotate(-18 15.6 15.2)"/><path d="M18.2 14.8V7.2l2.4-.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  logo: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M17.67 5.32 17.62 5.14 17.61 5 1 5 1 6 17.13 6ZM11.67 9 12.19 8.7 12.58 8.53 13.02 8.4 13.45 8.31 13.88 8.26 14.31 8.26 14.74 8.3 15.25 8.41 15.57 8 1 8 1 9ZM9.79 11.79 9.9 11.37 10.03 11 1 11 1 12 9.75 12ZM23.4 3.74 23.38 3.6 23.27 3.48 20.82 1.57 20.72 1.51 20.63 1.48 20.49 1.52 20.41 1.6 20.33 1.71 18.44 5 18.77 5.26 15.54 9.39 15.18 9.26 14.73 9.15 14.26 9.1 13.91 9.1 13.45 9.16 13.11 9.24 12.67 9.4 12.35 9.56 12.15 9.68 11.87 9.89 11.52 10.2 11.3 10.47 11.16 10.66 10.92 11.06 10.74 11.49 10.67 11.71 10.59 12.06 10.54 12.52 10.55 12.99 10.04 12.98 9.57 13.01 9.11 13.09 8.8 13.17 8.51 13.27 8.08 13.45 7.8 13.59 7.53 13.76 7.28 13.94 7.04 14.13 6.7 14.45 6.39 14.81 6.12 15.19 5.89 15.6 5.7 16.03 5.55 16.47 5.45 16.93 5.39 17.39 5.38 17.86 5.41 18.33 5.49 18.79 5.62 19.24 5.79 19.68 6 20.09 6.25 20.49 6.54 20.86 6.86 21.2 7.21 21.5 7.6 21.77 8 22.01 8.43 22.2 8.87 22.34 9.33 22.45 9.8 22.5 10.26 22.51 10.73 22.48 11.19 22.4 11.64 22.28 12.08 22.11 12.5 21.9 12.89 21.65 13.26 21.36 13.6 21.04 13.81 20.8 14 20.56 14.26 20.17 14.41 19.89 14.54 19.61 14.65 19.32 14.75 19.02 14.82 18.72 14.87 18.41 14.91 18.1 14.92 17.79 14.91 17.48 14.88 17.16 14.84 16.86 14.77 16.55 14.66 16.21 15.12 16.1 15.56 15.94 15.77 15.84 16.08 15.66 16.45 15.38 16.7 15.14 16.86 14.96 17.14 14.59 17.36 14.18 17.53 13.74 17.64 13.28 17.69 12.82 17.68 12.35 17.63 12 17.51 11.55 17.39 11.22 17.17 10.81 16.95 10.49 20.18 6.36 20.51 6.62 23.24 3.99 23.34 3.88ZM12.27 17.25 12.18 17.45 12.06 17.63 11.88 17.83 11.69 17.98 11.44 18.13 11.22 18.22 10.94 18.29 10.7 18.32 10.42 18.31 10.21 18.27 10.01 18.2 9.83 18.1 9.68 17.97 9.55 17.79 9.47 17.59 9.44 17.4 9.45 17.21 9.49 17.05 9.57 16.86 9.68 16.68 9.83 16.5 9.96 16.38 10.16 16.24 10.33 16.14 10.55 16.05 10.78 15.98 10.97 15.95 11.21 15.95 11.39 15.96 11.6 16.01 11.8 16.09 11.96 16.18 11.96 12.48 12.67 12.48 12.67 13.3 12.92 13.58 13.51 14.17 13.72 14.44 13.82 14.59 13.97 14.91 14.02 15.08 14.06 15.27 14.08 15.48 14.07 15.7 14.04 15.94 13.96 15.68 13.85 15.44 13.73 15.24 13.53 14.98 13.38 14.84 13.13 14.67 12.87 14.54 12.67 14.47 12.67 17.25ZM10.65 20.4 10.13 21.06 6.94 18.57 7.45 17.91ZM5.26 15 5.63 14.43 5.98 14 1 14 1 15ZM4.55 18 4.55 17.5 4.59 17 1 17 1 18ZM24 6 24 5 23.4 5 22.36 6ZM24 9 24 8 19.96 8 19.18 9ZM18.2 11.01 18.35 11.44 18.48 12 24 12 24 11ZM18.32 14 18.11 14.54 17.86 15 24 15 24 14ZM15.7 17 15.75 17.62 15.75 18 24 18 24 17Z" fill="currentColor" fill-rule="evenodd"/></svg>',
   back: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   settings: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="15" cy="7" r="2.2" stroke="currentColor" stroke-width="1.9"/><circle cx="8" cy="17" r="2.2" stroke="currentColor" stroke-width="1.9"/></svg>',
   home: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 10.5L12 4l7.5 6.5V20a1 1 0 01-1 1h-4v-6h-5v6h-4a1 1 0 01-1-1v-9.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
@@ -77,10 +77,12 @@ const ICONS = {
   upload: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 15V5m0 0L8.4 8.6M12 5l3.6 3.6M5 17.5V19a1 1 0 001 1h12a1 1 0 001-1v-1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   target: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.2" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4.4" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/></svg>',
   copy: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="9" y="9" width="10.5" height="10.5" rx="2.4" stroke="currentColor" stroke-width="1.8"/><path d="M15 6.5V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7a2 2 0 002 2h.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  share: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 15V4.5m0 0L8.2 8.3M12 4.5l3.8 3.8M6.5 11.5H6a1.5 1.5 0 00-1.5 1.5v6A1.5 1.5 0 006 20.5h12a1.5 1.5 0 001.5-1.5v-6a1.5 1.5 0 00-1.5-1.5h-.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   arrowRight: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 12h14M13 6.5l5.5 5.5L13 17.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
 
-const APP_VERSION = '1.2.1';
+const APP_VERSION = '1.3.0';
+const SHARE_SITE_URL = 'https://guitar-staff-flashcards.pages.dev/';
 
 /* ---------- 状态 ---------- */
 
@@ -94,6 +96,7 @@ const state = {
   lastResult: null,
   installPrompt: null,
   snackbarTimer: null,
+  snackbarShownAt: 0,
   storageOK: true,
 };
 
@@ -131,6 +134,8 @@ function parseRoute() {
 }
 
 function navigate(hash, { replace = false, scrollToTop = true } = {}) {
+  // 切页时收掉上一页的提示，避免它叠在新页面的按钮或结果上。
+  hideSnackbar({ olderThan: 250 });
   if (location.hash === hash) {
     render({ scrollToTop, focusView: true });
     return;
@@ -1158,6 +1163,12 @@ function renderResult() {
         ${missedHtml}
       </section>
 
+      <div class="share-row${canSystemShare() ? ' share-row--more' : ''}">
+        <button class="btn btn--tonal share-row__main" data-action="share-x">${icon('share')}分享成绩到 X</button>
+        <button class="btn btn--outline share-row__copy" data-action="share-copy" aria-label="复制成绩文字">复制</button>
+        ${canSystemShare() ? '<button class="btn btn--outline share-row__more" data-action="share-more" aria-label="用系统分享发到微信、QQ 等">更多分享</button>' : ''}
+      </div>
+
       <div class="result-actions">
         ${summary.focus
           ? `<button class="btn btn--filled btn--block" data-action="start-focus">再练一组弱项</button>
@@ -1181,6 +1192,47 @@ function renderResult() {
       });
     }
   });
+}
+
+function buildShareText() {
+  const result = state.lastResult;
+  if (!result) return '';
+  const { summary } = result;
+  const percent = Math.round(summary.accuracy * 100);
+  return `我在五线谱闪卡练习拿了 ${percent}%（${summary.firstCorrect}/${summary.total}），来试试？`;
+}
+
+function canSystemShare() {
+  return typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+}
+
+// 手机上调起系统分享面板（微信、QQ 等）；不支持时退回复制。
+async function shareMore() {
+  const text = buildShareText();
+  if (!text) return;
+  if (!canSystemShare()) {
+    copyText(`${text} ${SHARE_SITE_URL}`, { doneMessage: '成绩已复制，可以粘贴发给朋友。' });
+    return;
+  }
+  try {
+    await navigator.share({ title: '吉他五线谱闪卡', text, url: SHARE_SITE_URL });
+  } catch (error) {
+    if (error?.name === 'AbortError') return; // 用户自己取消
+    copyText(`${text} ${SHARE_SITE_URL}`, { doneMessage: '成绩已复制，可以粘贴发给朋友。' });
+  }
+}
+
+function shareToX() {
+  const text = buildShareText();
+  if (!text) return;
+  const url = `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(SHARE_SITE_URL)}`;
+  // 注意：带 noopener 时 window.open 总是返回 null，所以这里手动断开 opener。
+  const opened = window.open(url, '_blank');
+  if (opened) {
+    try { opened.opener = null; } catch { /* 跨域时忽略 */ }
+  } else {
+    location.href = url;
+  }
 }
 
 /* ---------- 渲染入口 ---------- */
@@ -1253,6 +1305,15 @@ function showDialog({
   });
 }
 
+function hideSnackbar({ olderThan = 0 } = {}) {
+  const snackbar = $('#snackbar');
+  if (!snackbar || !snackbar.classList.contains('is-visible')) return;
+  if (olderThan && Date.now() - (state.snackbarShownAt || 0) < olderThan) return;
+  if (state.snackbarTimer) clearTimeout(state.snackbarTimer);
+  state.snackbarTimer = null;
+  snackbar.classList.remove('is-visible');
+}
+
 function showSnackbar(message, { actionLabel = '', onAction = null, duration = 3600 } = {}) {
   const snackbar = $('#snackbar');
   if (state.snackbarTimer) clearTimeout(state.snackbarTimer);
@@ -1265,15 +1326,23 @@ function showSnackbar(message, { actionLabel = '', onAction = null, duration = 3
     action.className = 'snackbar__action';
     action.type = 'button';
     action.textContent = actionLabel;
-    action.addEventListener('click', () => {
-      snackbar.classList.remove('is-visible');
+    action.addEventListener('click', (event) => {
+      event.stopPropagation();
+      hideSnackbar();
       onAction();
     });
     snackbar.appendChild(action);
   }
+  if (!snackbar.dataset.bound) {
+    // 点一下提示条即可收起，不挡操作。
+    snackbar.addEventListener('click', () => hideSnackbar());
+    snackbar.dataset.bound = '1';
+  }
+  state.snackbarShownAt = Date.now();
   snackbar.classList.add('is-visible');
   state.snackbarTimer = setTimeout(() => {
     snackbar.classList.remove('is-visible');
+    state.snackbarTimer = null;
   }, duration);
 }
 
@@ -1329,6 +1398,7 @@ function handleBack() {
 }
 
 function handlePopState() {
+  hideSnackbar({ olderThan: 250 });
   const route = parseRoute();
   if (state.session && route.name !== 'quiz') {
     const pending = location.hash || '#/';
@@ -1395,6 +1465,30 @@ function onClick(event) {
   }
   if (action === 'set-color') {
     setColor(target.dataset.color, { renderAfter: true });
+    return;
+  }
+  if (action === 'share-x') {
+    shareToX();
+    return;
+  }
+  if (action === 'share-more') {
+    shareMore();
+    return;
+  }
+  if (action === 'share-copy') {
+    const text = buildShareText();
+    if (!text) return;
+    // 结果页不弹提示条，直接在按钮上显示「已复制」，不遮挡成绩和按钮。
+    copyText(`${text} ${SHARE_SITE_URL}`, { silent: true }).then((ok) => {
+      if (!ok || !target.isConnected) return;
+      target.textContent = '已复制';
+      target.classList.add('is-done');
+      setTimeout(() => {
+        if (!target.isConnected) return;
+        target.textContent = '复制';
+        target.classList.remove('is-done');
+      }, 1800);
+    });
     return;
   }
   if (action === 'toggle-unlock') {
@@ -1529,13 +1623,13 @@ async function importBackup(input) {
 }
 
 /** 复制文本；局域网 http 下没有 clipboard API，退回到选中文本。 */
-async function copyText(text) {
-  if (!text) return;
+async function copyText(text, { doneMessage = '地址已复制，发到手机上打开。', silent = false } = {}) {
+  if (!text) return false;
   try {
     if (navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(text);
-      showSnackbar('地址已复制，发到手机上打开。');
-      return;
+      if (!silent) showSnackbar(doneMessage);
+      return true;
     }
   } catch {
     // 继续走回退方案
@@ -1554,7 +1648,9 @@ async function copyText(text) {
     copied = false;
   }
   field.remove();
-  showSnackbar(copied ? '地址已复制，发到手机上打开。' : `请手动输记：${text}`);
+  if (!copied) showSnackbar(`请手动复制：${text}`, { duration: 8000 });
+  else if (!silent) showSnackbar(doneMessage);
+  return copied;
 }
 
 function onChange(event) {

@@ -18,7 +18,8 @@ import { fileURLToPath } from 'node:url';
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const DIST = join(ROOT, 'dist');
 
-const STATIC_FILES = ['index.html', 'manifest.webmanifest', 'sw.js'];
+// favicon.ico 放根目录：浏览器默认会请求 /favicon.ico。
+const STATIC_FILES = ['index.html', 'manifest.webmanifest', 'sw.js', 'favicon.ico'];
 // social/ 放分享卡片图（og:image），只给爬虫用，不进 Service Worker 预缓存。
 const STATIC_DIRS = ['css', 'vendor', 'icons', 'social'];
 
