@@ -2277,6 +2277,22 @@ body.nav-hidden .snackbar {
   padding: 0 18px;
 }
 
+/* 有「更多分享」时：第一行分享到 X，第二行复制 + 更多分享各占一半，360px 也不挤。 */
+.share-row--more {
+  flex-wrap: wrap;
+}
+
+.share-row--more .share-row__main {
+  flex: 1 0 100%;
+}
+
+.share-row--more .share-row__copy,
+.share-row--more .share-row__more {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 12px;
+}
+
 /* 答题/结果页底部是「下一题」「再来一组」等按钮：提示条改到顶栏下方，不压住按钮和结果。 */
 body.nav-hidden .snackbar {
   top: calc(var(--safe-top) + 68px);

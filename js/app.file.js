@@ -3476,9 +3476,10 @@ function renderResult() {
         ${missedHtml}
       </section>
 
-      <div class="share-row">
+      <div class="share-row${canSystemShare() ? ' share-row--more' : ''}">
         <button class="btn btn--tonal share-row__main" data-action="share-x">${icon('share')}分享成绩到 X</button>
         <button class="btn btn--outline share-row__copy" data-action="share-copy" aria-label="复制成绩文字">复制</button>
+        ${canSystemShare() ? '<button class="btn btn--outline share-row__more" data-action="share-more" aria-label="用系统分享发到微信、QQ 等">更多分享</button>' : ''}
       </div>
 
       <div class="result-actions">
@@ -3512,6 +3513,26 @@ function buildShareText() {
   const { summary } = result;
   const percent = Math.round(summary.accuracy * 100);
   return `我在五线谱闪卡练习拿了 ${percent}%（${summary.firstCorrect}/${summary.total}），来试试？`;
+}
+
+function canSystemShare() {
+  return typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+}
+
+// 手机上调起系统分享面板（微信、QQ 等）；不支持时退回复制。
+async function shareMore() {
+  const text = buildShareText();
+  if (!text) return;
+  if (!canSystemShare()) {
+    copyText(`${text} ${SHARE_SITE_URL}`, { doneMessage: '成绩已复制，可以粘贴发给朋友。' });
+    return;
+  }
+  try {
+    await navigator.share({ title: '吉他五线谱闪卡', text, url: SHARE_SITE_URL });
+  } catch (error) {
+    if (error?.name === 'AbortError') return; // 用户自己取消
+    copyText(`${text} ${SHARE_SITE_URL}`, { doneMessage: '成绩已复制，可以粘贴发给朋友。' });
+  }
 }
 
 function shareToX() {
@@ -3761,6 +3782,10 @@ function onClick(event) {
   }
   if (action === 'share-x') {
     shareToX();
+    return;
+  }
+  if (action === 'share-more') {
+    shareMore();
     return;
   }
   if (action === 'share-copy') {
