@@ -1,0 +1,45 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<!-- 分享卡片图 social/og-image.png 的生成页：npm start 后用 1200×630 视口打开 /tests/dev/og-card.html 截图。 -->
+<link rel="stylesheet" href="../../css/styles.css">
+<style>
+html,body{margin:0;width:1200px;height:630px;overflow:hidden;background:#f5f6f2}
+.og{box-sizing:border-box;width:1200px;height:630px;padding:60px 64px;display:flex;gap:40px;align-items:center;
+ background:radial-gradient(circle at 85% 15%, rgba(61,107,92,.16), transparent 55%), #f5f6f2;font-family:-apple-system,"PingFang SC","Noto Sans CJK SC","Noto Sans SC",sans-serif}
+.left{flex:1;min-width:0}
+.eyebrow{color:#3d6b5c;font-size:24px;font-weight:600;letter-spacing:.06em;margin:0 0 18px}
+.title{font-size:72px;white-space:nowrap;line-height:1.08;margin:0 0 22px;color:#1c2420;font-weight:800}
+.tagline{font-size:34px;line-height:1.4;color:#31594c;margin:0 0 34px;font-weight:600}
+.chips{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:38px}
+.chips span{font-size:22px;padding:8px 18px;border-radius:999px;background:#dfe9e3;color:#31594c;font-weight:600}
+.url{font-size:22px;color:#5d6a64}
+.card{width:470px;flex:none;background:#fff;border-radius:32px;box-shadow:0 18px 48px rgba(30,60,50,.16);padding:22px 22px 26px;border:1px solid #e1e6e2}
+.card .s{width:456px;height:150px;margin-bottom:6px}
+.card .f svg{width:100%!important;height:auto!important}.card .f .fb-scroll{overflow:visible!important}
+.label{font-size:24px;color:#1c2420;font-weight:700;margin:0 0 8px 6px}
+.label em{font-style:normal;color:#3d6b5c}
+</style></head><body>
+<div class="og">
+  <div class="left">
+    <p class="eyebrow">高音谱号 · 固定唱名 · 标准调弦</p>
+    <h1 class="title">吉他五线谱闪卡</h1>
+    <p class="tagline">把五线谱，变成手上的位置。</p>
+    <div class="chips"><span>读谱</span><span>唱名</span><span>找位置</span><span>第一把位 → 全指板</span></div>
+    <div class="url">guitar-staff-flashcards.pages.dev</div>
+  </div>
+  <div class="card">
+    <p class="label">G · <em>sol</em> · ③弦 空弦</p>
+    <div class="s" id="s"></div>
+    <div class="f" id="f"></div>
+  </div>
+</div>
+<script src="../../vendor/vexflow.js"></script>
+<script type="module">
+import { ensureStaffFonts, renderStaff } from '../../js/staff.js';
+import { renderFingerboard } from '../../js/fingerboard.js';
+import { makeNote } from '../../js/music.js';
+await ensureStaffFonts();
+const n = makeNote(3,0,'sharp');
+renderStaff(document.getElementById('s'), n.pitch, {width:456,height:150,staveY:15,noteStartX:270,showStringBadge:true,stringNumber:3,state:'correct'});
+renderFingerboard(document.getElementById('f'), {frets:[0,1,2,3], targetPositions:[{string:3,fret:0}], revealPosition:{string:3,fret:0}, showFretLabels:true});
+window.__ready = true;
+</script></body></html>
