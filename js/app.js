@@ -80,7 +80,7 @@ const ICONS = {
   arrowRight: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 12h14M13 6.5l5.5 5.5L13 17.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
 
-const APP_VERSION = '1.2.0';
+const APP_VERSION = '1.2.1';
 
 /* ---------- 状态 ---------- */
 
@@ -248,16 +248,14 @@ function renderHome() {
 
   const practice = getPracticeSummary(state.progress, state.settings);
   const weak = getWeakestPitches(state.progress, state.settings, 12);
-  const focusSummary = practice.practiced
-    ? `练过 ${practice.practiced} 个音，${practice.mastered} 个已达标`
-    : '';
   const weakPreview = weak.slice(0, 3).map((item) => item.note.pitch.name).join('、');
+  // 只有真正答错过 / 反复没记住的音才进弱项（见 levels.js isWeakEntry），刚开始练不会出现。
   const focusCard = weak.length >= 3
     ? `<button class="focus-card" data-action="start-focus">
         <span class="focus-card__icon" aria-hidden="true">${icon('target')}</span>
         <span class="focus-card__main">
           <span class="focus-card__title">弱项练习 · ${weak.length} 个音</span>
-          <span class="focus-card__desc">${esc(weakPreview)} 等还没达标 · ${esc(focusSummary)}</span>
+          <span class="focus-card__desc">${esc(weakPreview)}${weak.length > 3 ? ' 等' : ''}容易出错，专门练一组巩固</span>
         </span>
         <span class="focus-card__chevron" aria-hidden="true">${icon('arrowRight')}</span>
       </button>`
@@ -274,12 +272,14 @@ function renderHome() {
           <div class="hero__staff" id="hero-staff"></div>
         </div>
         <div class="hero__stats">
-          <div class="progress-ring" style="${progressRingStyle(practice.practiced ? overall.avgPercent : 0)}" aria-hidden="true">
-            <span class="progress-ring__text">${practice.practiced ? `${overall.avgPercent}%` : '—'}</span>
+          <div class="progress-ring" style="${progressRingStyle(practice.practiced ? overall.progressPercent : 0)}" aria-hidden="true">
+            <span class="progress-ring__text">${practice.practiced ? `${overall.progressPercent}%` : '—'}</span>
           </div>
           <div class="hero__stats-text">
-            <div class="hero__stats-title">${practice.practiced ? `平均熟练度 ${overall.avgLevel} / 5` : '还没有练习记录'}</div>
-            <div class="hero__stats-sub">${overall.mastered} / ${overall.total} 个音达标</div>
+            <div class="hero__stats-title">${practice.practiced ? `全指板进度 ${overall.progressPercent}%` : '还没有练习记录'}</div>
+            <div class="hero__stats-sub">${practice.practiced
+              ? `已练 ${overall.practiced} / ${overall.total} 个音 · ${overall.mastered} 个达标`
+              : `全指板共 ${overall.total} 个音`}</div>
           </div>
           <button class="btn btn--tonal" data-action="start-level" data-level="${nextLevel.id}">
             ${practice.practiced ? '继续' : '开始'} ${icon('arrowRight')}
@@ -293,7 +293,7 @@ function renderHome() {
       <section class="section">
         <div class="section-head">
           <h2 class="section-title">关卡</h2>
-          <p class="section-subtitle">完成度按音高熟练度计算</p>
+          <p class="section-subtitle">百分比是掌握进度，分数是达标音数</p>
         </div>
         ${groups.map((group) => `
           <div class="group-label">${esc(group.title)}</div>
@@ -306,6 +306,8 @@ function renderHome() {
       <div class="rule-note">
         <strong>解锁规则：</strong>本关所有音达到 ${MASTERY_LEVEL} 级熟练度（共 5 级），且最近一组正确率达到 90%，就会解锁下一关。熟悉之后，也可以在设置里打开“解锁全部关卡”。
       </div>
+
+      ${renderAuthorLine('home-author')}
     </div>`;
 
   const heroStaff = $('#hero-staff');
@@ -361,11 +363,20 @@ function renderLevelCard(level) {
       </span>
       <span class="level-side" aria-hidden="true">
         ${unlocked
-          ? `<span class="progress-ring" style="${progressRingStyle(status.percent)}"><span class="progress-ring__text">${status.percent}%</span></span>
+          ? `<span class="progress-ring" style="${progressRingStyle(status.progressPercent)}"><span class="progress-ring__text">${status.progressPercent}%</span></span>
              <span class="level-side__label">${status.mastered}/${status.total}</span>`
           : `<span class="level-lock">${icon('lock')}</span><span class="level-side__label">未解锁</span>`}
       </span>
     </button>`;
+}
+
+/* ---------- 作者 ---------- */
+
+const AUTHOR_X_URL = 'https://x.com/nan_chen618';
+
+function renderAuthorLine(extraClass = '') {
+  return `<p class="author-line ${extraClass}">作者 南 · 一个拿 AI 做实验的吉他手 ·
+    <a href="${AUTHOR_X_URL}" target="_blank" rel="noopener">X @nan_chen618</a></p>`;
 }
 
 /* ---------- 设置 ---------- */
@@ -554,6 +565,7 @@ function renderSettings() {
             : '当前需联网访问。浏览器支持 Service Worker 且通过 HTTPS 打开时，会在后台缓存应用；缓存完成后这里会显示“离线可用”。'}</p>
           <p><strong>安装：</strong>iPhone / iPad 用 Safari 分享菜单“添加到主屏幕”；Android 可在浏览器菜单中安装。安装需要 HTTPS。</p>
           <p><strong>谱表：</strong>VexFlow 5.0.0，已随项目内置。</p>
+          <p><strong>作者：</strong>南 · 一个拿 AI 做实验的吉他手 · <a href="${AUTHOR_X_URL}" target="_blank" rel="noopener">X @nan_chen618</a></p>
         </div>
       </section>
     </div>`;
@@ -1067,7 +1079,7 @@ function renderResult() {
         <div class="requirement__title">下一关：${esc(nextLevel.title)}</div>
         <div class="requirement__row">
           <span class="requirement__check ${mastered >= total ? 'is-done' : ''}">${mastered >= total ? '✓' : ''}</span>
-          <span>本关熟练度：平均 ${statusAfter.avgLevel} / 5，${mastered} / ${total} 个音达标</span>
+          <span>本关进度 ${statusAfter.progressPercent}%：${mastered} / ${total} 个音达到 ${MASTERY_LEVEL} 级</span>
         </div>
         <div class="requirement__row">
           <span class="requirement__check ${accuracy >= 0.9 ? 'is-done' : ''}">${accuracy >= 0.9 ? '✓' : ''}</span>

@@ -8,7 +8,9 @@ import {
   getLevelPool,
   getLevelStatus,
   getOverallMastery,
+  getWeakestPitches,
   isLevelUnlocked,
+  isWeakEntry,
 } from '../js/levels.js';
 import { DEFAULT_SETTINGS, createProgress } from '../js/storage.js';
 
@@ -99,4 +101,51 @@ test('总进度分母为全指板唯一自然音/变化音音高', () => {
   const overall = getOverallMastery(progress, SETTINGS);
   assert.equal(overall.mastered, 1);
   assert.equal(overall.percent, 3);
+});
+
+/** 模拟「第一组 8 个音全部答对一次」：每个音 1 → 2 级。 */
+function afterFirstRound() {
+  const progress = createProgress();
+  const level = LEVEL_BY_ID['p1-upper'];
+  const keys = [...new Set(getLevelPool(level, 'sharp').map((note) => note.pitchKey))];
+  for (const key of keys) {
+    progress.notes[key] = { level: 2, correct: 1, wrong: 0, lastSeenAt: 1, dueAt: 1 };
+  }
+  return { progress, level, keys };
+}
+
+test('掌握进度：关卡卡片、结果页、首页同一口径，没练过的音计 0', () => {
+  const { progress, level, keys } = afterFirstRound();
+  const status = getLevelStatus(level, progress, SETTINGS);
+  assert.equal(keys.length, 8);
+  // 每个音走了达标线（3 级）的一半。
+  assert.equal(status.progressPercent, 50);
+  assert.equal(status.practiced, 8);
+  assert.equal(status.mastered, 0);
+
+  const overall = getOverallMastery(progress, SETTINGS);
+  assert.equal(overall.practiced, 8);
+  // 8 个音各一半 / 全指板 37 个音 = 4/37 ≈ 11%。
+  assert.equal(overall.progressPercent, Math.round((4 / 37) * 100));
+
+  assert.equal(getLevelStatus(level, createProgress(), SETTINGS).progressPercent, 0);
+  assert.equal(getOverallMastery(createProgress(), SETTINGS).progressPercent, 0);
+
+  // 超过达标线不再加分：全部 5 级时正好 100%。
+  for (const key of keys) progress.notes[key].level = 5;
+  assert.equal(getLevelStatus(level, progress, SETTINGS).progressPercent, 100);
+});
+
+test('弱项：刚练完第一组、一次没错的音不算弱项', () => {
+  const { progress } = afterFirstRound();
+  assert.equal(getWeakestPitches(progress, SETTINGS).length, 0);
+});
+
+test('弱项：答错过的音、练很多次仍没达标的音才算', () => {
+  assert.equal(isWeakEntry({ level: 1, correct: 0, wrong: 1, lastSeenAt: 1 }), false, '只答过一次不判');
+  assert.equal(isWeakEntry({ level: 1, correct: 1, wrong: 1, lastSeenAt: 1 }), true);
+  assert.equal(isWeakEntry({ level: 2, correct: 4, wrong: 0, lastSeenAt: 1 }), true, '练了 4 次还没达标');
+  assert.equal(isWeakEntry({ level: 3, correct: 2, wrong: 0, lastSeenAt: 1 }), false);
+  assert.equal(isWeakEntry({ level: 3, correct: 3, wrong: 2, lastSeenAt: 1 }), true, '达标但正确率 60%');
+  assert.equal(isWeakEntry({ level: 4, correct: 9, wrong: 1, lastSeenAt: 1 }), false);
 });
