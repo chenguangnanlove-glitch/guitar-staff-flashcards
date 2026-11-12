@@ -1,5 +1,5 @@
 /* 吉他五线谱闪卡 — 离线缓存。版本变化时更新 CACHE_NAME。 */
-const CACHE_NAME = 'guitar-staff-flashcards-v1.2.1';
+const CACHE_NAME = 'guitar-staff-flashcards-v1.3.0';
 const APP_SHELL = [
   './',
   './index.html',
