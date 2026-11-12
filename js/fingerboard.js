@@ -23,6 +23,22 @@ const DEFAULT_LAYOUT = Object.freeze({
   ringRadius: 11,
 });
 
+// 答题用的指板加大弦距，保证手机上每个可点格子至少 44px 高。
+// 窄指板按容器宽度放大（约 1.3 倍），弦距 36 即可；
+// 全指板（> 520）按原尺寸横向滚动，弦距直接取 44。
+const WIDE_BOARD_WIDTH = 520;
+const TAP_TARGET_MIN = 44;
+
+function interactiveLayout(frets) {
+  const natural = computeFingerboardGeometry(frets, DEFAULT_LAYOUT).width;
+  const wide = natural > WIDE_BOARD_WIDTH;
+  return Object.freeze({
+    ...DEFAULT_LAYOUT,
+    stringGap: wide ? TAP_TARGET_MIN : 36,
+    padY: wide ? 16 : 15,
+  });
+}
+
 function svgEl(tag, attrs = {}) {
   const element = document.createElementNS(FB_SVG_NS, tag);
   for (const [key, value] of Object.entries(attrs)) {
@@ -105,7 +121,7 @@ export function renderFingerboard(container, options = {}) {
     showFretLabels = true,
   } = options;
 
-  const layout = DEFAULT_LAYOUT;
+  const layout = onSelect ? interactiveLayout(frets) : DEFAULT_LAYOUT;
   const geometry = computeFingerboardGeometry(frets, layout);
   const { width, height, nutX, boardLeft, boardRight, sorted, stopped, hasOpen, stringY, cellCenterX, boardTop, boardBottom } = geometry;
   const fretLineTop = boardTop + 2;
@@ -114,7 +130,7 @@ export function renderFingerboard(container, options = {}) {
   container.innerHTML = '';
   const scroll = document.createElement('div');
   scroll.className = 'fb-scroll';
-  if (width > 520) scroll.classList.add('fb-scroll--wide');
+  if (width > WIDE_BOARD_WIDTH) scroll.classList.add('fb-scroll--wide');
   container.appendChild(scroll);
 
   const svg = svgEl('svg', {
@@ -125,7 +141,7 @@ export function renderFingerboard(container, options = {}) {
     role: 'group',
     'aria-label': ariaLabel,
   });
-  if (width > 520) svg.classList.add('fingerboard-svg--wide');
+  if (width > WIDE_BOARD_WIDTH) svg.classList.add('fingerboard-svg--wide');
   scroll.appendChild(svg);
 
   const defs = svgEl('defs');

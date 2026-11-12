@@ -1703,6 +1703,22 @@ const DEFAULT_LAYOUT = Object.freeze({
   ringRadius: 11,
 });
 
+// 答题用的指板加大弦距，保证手机上每个可点格子至少 44px 高。
+// 窄指板按容器宽度放大（约 1.3 倍），弦距 36 即可；
+// 全指板（> 520）按原尺寸横向滚动，弦距直接取 44。
+const WIDE_BOARD_WIDTH = 520;
+const TAP_TARGET_MIN = 44;
+
+function interactiveLayout(frets) {
+  const natural = computeFingerboardGeometry(frets, DEFAULT_LAYOUT).width;
+  const wide = natural > WIDE_BOARD_WIDTH;
+  return Object.freeze({
+    ...DEFAULT_LAYOUT,
+    stringGap: wide ? TAP_TARGET_MIN : 36,
+    padY: wide ? 16 : 15,
+  });
+}
+
 function svgEl(tag, attrs = {}) {
   const element = document.createElementNS(FB_SVG_NS, tag);
   for (const [key, value] of Object.entries(attrs)) {
@@ -1785,7 +1801,7 @@ function renderFingerboard(container, options = {}) {
     showFretLabels = true,
   } = options;
 
-  const layout = DEFAULT_LAYOUT;
+  const layout = onSelect ? interactiveLayout(frets) : DEFAULT_LAYOUT;
   const geometry = computeFingerboardGeometry(frets, layout);
   const { width, height, nutX, boardLeft, boardRight, sorted, stopped, hasOpen, stringY, cellCenterX, boardTop, boardBottom } = geometry;
   const fretLineTop = boardTop + 2;
@@ -1794,7 +1810,7 @@ function renderFingerboard(container, options = {}) {
   container.innerHTML = '';
   const scroll = document.createElement('div');
   scroll.className = 'fb-scroll';
-  if (width > 520) scroll.classList.add('fb-scroll--wide');
+  if (width > WIDE_BOARD_WIDTH) scroll.classList.add('fb-scroll--wide');
   container.appendChild(scroll);
 
   const svg = svgEl('svg', {
@@ -1805,7 +1821,7 @@ function renderFingerboard(container, options = {}) {
     role: 'group',
     'aria-label': ariaLabel,
   });
-  if (width > 520) svg.classList.add('fingerboard-svg--wide');
+  if (width > WIDE_BOARD_WIDTH) svg.classList.add('fingerboard-svg--wide');
   scroll.appendChild(svg);
 
   const defs = svgEl('defs');
@@ -2374,10 +2390,12 @@ const ICONS = {
   upload: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 15V5m0 0L8.4 8.6M12 5l3.6 3.6M5 17.5V19a1 1 0 001 1h12a1 1 0 001-1v-1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   target: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.2" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4.4" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/></svg>',
   copy: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="9" y="9" width="10.5" height="10.5" rx="2.4" stroke="currentColor" stroke-width="1.8"/><path d="M15 6.5V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7a2 2 0 002 2h.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  share: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 15V4.5m0 0L8.2 8.3M12 4.5l3.8 3.8M6.5 11.5H6a1.5 1.5 0 00-1.5 1.5v6A1.5 1.5 0 006 20.5h12a1.5 1.5 0 001.5-1.5v-6a1.5 1.5 0 00-1.5-1.5h-.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   arrowRight: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 12h14M13 6.5l5.5 5.5L13 17.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
 
-const APP_VERSION = '1.2.1';
+const APP_VERSION = '1.3.0';
+const SHARE_SITE_URL = 'https://guitar-staff-flashcards.pages.dev/';
 
 /* ---------- 状态 ---------- */
 
@@ -2391,6 +2409,7 @@ const state = {
   lastResult: null,
   installPrompt: null,
   snackbarTimer: null,
+  snackbarShownAt: 0,
   storageOK: true,
 };
 
@@ -2428,6 +2447,8 @@ function parseRoute() {
 }
 
 function navigate(hash, { replace = false, scrollToTop = true } = {}) {
+  // 切页时收掉上一页的提示，避免它叠在新页面的按钮或结果上。
+  hideSnackbar({ olderThan: 250 });
   if (location.hash === hash) {
     render({ scrollToTop, focusView: true });
     return;
@@ -3455,6 +3476,11 @@ function renderResult() {
         ${missedHtml}
       </section>
 
+      <div class="share-row">
+        <button class="btn btn--tonal share-row__main" data-action="share-x">${icon('share')}分享成绩到 X</button>
+        <button class="btn btn--outline share-row__copy" data-action="share-copy" aria-label="复制成绩文字">复制</button>
+      </div>
+
       <div class="result-actions">
         ${summary.focus
           ? `<button class="btn btn--filled btn--block" data-action="start-focus">再练一组弱项</button>
@@ -3478,6 +3504,27 @@ function renderResult() {
       });
     }
   });
+}
+
+function buildShareText() {
+  const result = state.lastResult;
+  if (!result) return '';
+  const { summary } = result;
+  const percent = Math.round(summary.accuracy * 100);
+  return `我在五线谱闪卡练习拿了 ${percent}%（${summary.firstCorrect}/${summary.total}），来试试？`;
+}
+
+function shareToX() {
+  const text = buildShareText();
+  if (!text) return;
+  const url = `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(SHARE_SITE_URL)}`;
+  // 注意：带 noopener 时 window.open 总是返回 null，所以这里手动断开 opener。
+  const opened = window.open(url, '_blank');
+  if (opened) {
+    try { opened.opener = null; } catch { /* 跨域时忽略 */ }
+  } else {
+    location.href = url;
+  }
 }
 
 /* ---------- 渲染入口 ---------- */
@@ -3550,6 +3597,15 @@ function showDialog({
   });
 }
 
+function hideSnackbar({ olderThan = 0 } = {}) {
+  const snackbar = $('#snackbar');
+  if (!snackbar || !snackbar.classList.contains('is-visible')) return;
+  if (olderThan && Date.now() - (state.snackbarShownAt || 0) < olderThan) return;
+  if (state.snackbarTimer) clearTimeout(state.snackbarTimer);
+  state.snackbarTimer = null;
+  snackbar.classList.remove('is-visible');
+}
+
 function showSnackbar(message, { actionLabel = '', onAction = null, duration = 3600 } = {}) {
   const snackbar = $('#snackbar');
   if (state.snackbarTimer) clearTimeout(state.snackbarTimer);
@@ -3562,15 +3618,23 @@ function showSnackbar(message, { actionLabel = '', onAction = null, duration = 3
     action.className = 'snackbar__action';
     action.type = 'button';
     action.textContent = actionLabel;
-    action.addEventListener('click', () => {
-      snackbar.classList.remove('is-visible');
+    action.addEventListener('click', (event) => {
+      event.stopPropagation();
+      hideSnackbar();
       onAction();
     });
     snackbar.appendChild(action);
   }
+  if (!snackbar.dataset.bound) {
+    // 点一下提示条即可收起，不挡操作。
+    snackbar.addEventListener('click', () => hideSnackbar());
+    snackbar.dataset.bound = '1';
+  }
+  state.snackbarShownAt = Date.now();
   snackbar.classList.add('is-visible');
   state.snackbarTimer = setTimeout(() => {
     snackbar.classList.remove('is-visible');
+    state.snackbarTimer = null;
   }, duration);
 }
 
@@ -3626,6 +3690,7 @@ function handleBack() {
 }
 
 function handlePopState() {
+  hideSnackbar({ olderThan: 250 });
   const route = parseRoute();
   if (state.session && route.name !== 'quiz') {
     const pending = location.hash || '#/';
@@ -3692,6 +3757,26 @@ function onClick(event) {
   }
   if (action === 'set-color') {
     setColor(target.dataset.color, { renderAfter: true });
+    return;
+  }
+  if (action === 'share-x') {
+    shareToX();
+    return;
+  }
+  if (action === 'share-copy') {
+    const text = buildShareText();
+    if (!text) return;
+    // 结果页不弹提示条，直接在按钮上显示「已复制」，不遮挡成绩和按钮。
+    copyText(`${text} ${SHARE_SITE_URL}`, { silent: true }).then((ok) => {
+      if (!ok || !target.isConnected) return;
+      target.textContent = '已复制';
+      target.classList.add('is-done');
+      setTimeout(() => {
+        if (!target.isConnected) return;
+        target.textContent = '复制';
+        target.classList.remove('is-done');
+      }, 1800);
+    });
     return;
   }
   if (action === 'toggle-unlock') {
@@ -3826,13 +3911,13 @@ async function importBackup(input) {
 }
 
 /** 复制文本；局域网 http 下没有 clipboard API，退回到选中文本。 */
-async function copyText(text) {
-  if (!text) return;
+async function copyText(text, { doneMessage = '地址已复制，发到手机上打开。', silent = false } = {}) {
+  if (!text) return false;
   try {
     if (navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(text);
-      showSnackbar('地址已复制，发到手机上打开。');
-      return;
+      if (!silent) showSnackbar(doneMessage);
+      return true;
     }
   } catch {
     // 继续走回退方案
@@ -3851,7 +3936,9 @@ async function copyText(text) {
     copied = false;
   }
   field.remove();
-  showSnackbar(copied ? '地址已复制，发到手机上打开。' : `请手动输记：${text}`);
+  if (!copied) showSnackbar(`请手动复制：${text}`, { duration: 8000 });
+  else if (!silent) showSnackbar(doneMessage);
+  return copied;
 }
 
 function onChange(event) {

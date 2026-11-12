@@ -2255,3 +2255,40 @@ body.nav-hidden .snackbar {
     min-height: 100px;
   }
 }
+
+/* ---------- 1.3：分享成绩 ---------- */
+
+.share-row {
+  display: flex;
+  gap: 8px;
+}
+
+.share-row .btn {
+  min-height: 48px;
+}
+
+.share-row__main {
+  flex: 1;
+}
+
+.share-row__copy {
+  flex: 0 0 auto;
+  min-width: 84px;
+  padding: 0 18px;
+}
+
+/* 答题/结果页底部是「下一题」「再来一组」等按钮：提示条改到顶栏下方，不压住按钮和结果。 */
+body.nav-hidden .snackbar {
+  top: calc(var(--safe-top) + 68px);
+  bottom: auto;
+  transform: translate(-50%, -14px);
+}
+
+body.nav-hidden .snackbar.is-visible {
+  transform: translate(-50%, 0);
+}
+
+.share-row__copy.is-done {
+  background: var(--primary-container);
+  box-shadow: none;
+}
