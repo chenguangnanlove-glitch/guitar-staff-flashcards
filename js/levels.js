@@ -230,6 +230,24 @@ export function getPositionProficiency(progress, writtenMidi, stringNumber) {
   return progress?.positions?.[`w${writtenMidi}@${stringNumber}`]?.level || 1;
 }
 
+/**
+ * 「掌握进度」：每个音从 1 级升到达标线（MASTERY_LEVEL）算满，超过达标线不再加分。
+ * 没练过的音计 0，而不是按 1 级计入，所以 0% 就是「还没开始」，100% 就是「全部达标」。
+ * 关卡卡片、首页圆环、结果页都用这一个口径，只是范围不同（本关 / 全指板）。
+ */
+export function getProgressPercent(progress, keys) {
+  if (!keys.length) return 0;
+  const span = MASTERY_LEVEL - 1;
+  const earned = keys.reduce((sum, key) => (
+    sum + Math.min(span, Math.max(0, getNoteProficiency(progress, key) - 1))
+  ), 0);
+  return Math.round((earned / (keys.length * span)) * 100);
+}
+
+function countPracticed(progress, keys) {
+  return keys.filter((key) => Boolean(progress?.notes?.[key]?.lastSeenAt)).length;
+}
+
 /** 关卡「完成度」按不同谱面音高计算，同音异位只算一个音。 */
 function uniquePitchKeys(pool) {
   return [...new Set(pool.map((note) => note.pitchKey))];
@@ -256,6 +274,8 @@ export function getLevelStatus(level, progress, settings) {
     avgLevel: Number(avgLevel.toFixed(1)),
     toMastery,
     percent: uniqueKeys.length ? Math.round((mastered / uniqueKeys.length) * 100) : 0,
+    progressPercent: getProgressPercent(progress, uniqueKeys),
+    practiced: countPracticed(progress, uniqueKeys),
     completed,
     lastGroup,
     lastAccuracy: lastGroup ? lastGroup.accuracy : null,
@@ -303,7 +323,29 @@ export function getOverallMastery(progress, settings) {
     percent: Math.round((mastered / uniqueKeys.length) * 100),
     avgLevel: Number(avgLevel.toFixed(1)),
     avgPercent: Math.round((avgLevel / 5) * 100),
+    progressPercent: getProgressPercent(progress, uniqueKeys),
+    practiced: countPracticed(progress, uniqueKeys),
   };
+}
+
+/** 至少答过这么多次，才有资格被判为弱项；只答过一次的新音不算。 */
+export const WEAK_MIN_ATTEMPTS = 2;
+
+/**
+ * 真正的弱项：答过至少 2 次，并且
+ * - 还没达标时：答错过，或者已经练了 4 次以上仍没达标；
+ * - 已达标时：总正确率低于 70%（以前反复错、靠后来答对升上去的音）。
+ * 刚练完第一组、一次都没错的音只是「还在学」，不算弱项。
+ */
+export function isWeakEntry(entry) {
+  if (!entry || !entry.lastSeenAt) return false;
+  const correct = entry.correct || 0;
+  const wrong = entry.wrong || 0;
+  const attempts = correct + wrong;
+  if (attempts < WEAK_MIN_ATTEMPTS) return false;
+  const level = entry.level || 1;
+  if (level < MASTERY_LEVEL) return wrong > 0 || attempts >= 4;
+  return correct / attempts < 0.7;
 }
 
 /**
@@ -322,7 +364,7 @@ export function getWeakestPitches(progress, settings, limit = 12) {
   for (const note of pool) {
     if (seen.has(note.pitchKey)) continue;
     const entry = progress?.notes?.[note.pitchKey];
-    if (!entry || !entry.lastSeenAt) continue;
+    if (!isWeakEntry(entry)) continue;
     const attempts = entry.correct + entry.wrong;
     seen.set(note.pitchKey, {
       pitchKey: note.pitchKey,
@@ -336,7 +378,6 @@ export function getWeakestPitches(progress, settings, limit = 12) {
     });
   }
   return [...seen.values()]
-    .filter((item) => item.level < MASTERY_LEVEL || item.wrong > 0)
     .sort((a, b) => (
       a.level - b.level
       || b.wrong - a.wrong
