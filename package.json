@@ -1,6 +1,6 @@
 {
   "name": "guitar-staff-flashcards",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
   "type": "module",
   "description": "吉他五线谱闪卡：高音谱号、音名、固定唱名与指板位置的中文 PWA",

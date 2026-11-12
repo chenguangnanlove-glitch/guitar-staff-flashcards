@@ -19,7 +19,8 @@ const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const DIST = join(ROOT, 'dist');
 
 const STATIC_FILES = ['index.html', 'manifest.webmanifest', 'sw.js'];
-const STATIC_DIRS = ['css', 'vendor', 'icons'];
+// social/ 放分享卡片图（og:image），只给爬虫用，不进 Service Worker 预缓存。
+const STATIC_DIRS = ['css', 'vendor', 'icons', 'social'];
 
 // Cloudflare Pages 与 Netlify 的 _headers 语法一致：路径行 + 缩进的 Header: value。
 // `/` 必须单独写一条：根路径请求不会命中 `/index.html` 规则。
@@ -47,6 +48,9 @@ const HEADERS = `# 由 scripts/build-static.mjs 生成，请勿手改。
 
 # 图标很少变动，可以放心缓存一天。
 /icons/*
+  Cache-Control: public, max-age=86400
+
+/social/*
   Cache-Control: public, max-age=86400
 `;
 
